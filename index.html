@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ohio Temperature Boxes with Background, Drag & Drop, Tooltip, Date Stamp, and Editable Text</title>
+  <style>
+    /* CSS custom properties for easy customization */
+    :root {
+      /* Temperature box properties */
+      --font-size: 35px;
+      --font-color: #ffff00;
+      --font-type: "Overpass Black", sans-serif;
+      --font-glow: 0 0 5px #000, 0 0 5px #000, 0 0 5px #000;
+      --background: rgba(0, 0, 0, 0);
+      --border: 0px solid #fff;
+      /* Set your background image URL below */
+      --bg-image: url('BACKGROUND.PNG');
+      
+      /* Date stamp custom properties */
+      --date-font-size: 36px;
+      --date-font-color: #ffffff;
+      --date-font-type: "Overpass Black", sans-serif;
+      --date-font-glow: 0 0 5px #000, 0 0 5px #000, 0 0 5px #000;
+      --date-background: rgba(0, 0, 0, 0);
+      --date-border: 0px solid #fff;
+
+      /* Editable text box custom properties */
+      --editable-font-size: 30px;
+      --editable-font-color: #FFFFFF;
+      --editable-font-type: "Overpass Black", sans-serif;
+      --editable-font-glow: 0 0 5px #000, 0 0 5px #000, 0 0 5px #000;
+      --editable-background: rgba(0, 0, 0, 0);
+      --editable-border: 0px solid #fff;
+    }
+
+    /* Make the container fixed in the viewport so it never shifts */
+    body {
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+    }
+    
+    /* Fixed container centered in the viewport */
+    #container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 1620px;
+      height: 780px;
+      transform: translate(-50%, -50%);
+      background-image: var(--bg-image);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    /* Style for each temperature box */
+    .temp-box {
+      position: absolute;
+      transform: translateX(-50%);
+      text-align: center;
+      font-size: var(--font-size);
+      color: var(--font-color);
+      font-family: var(--font-type);
+      text-shadow: var(--font-glow);
+      background: var(--background);
+      border: var(--border);
+      padding: 10px;
+      min-width: 80px;
+      cursor: move;
+    }
+
+    /* Style for the date stamp container */
+    .date-stamp {
+      position: absolute;
+      text-align: left;
+      font-size: var(--date-font-size);
+      color: var(--date-font-color);
+      font-family: var(--date-font-type);
+      text-shadow: var(--date-font-glow);
+      background: var(--date-background);
+      border: var(--date-border);
+      padding: 10px;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      cursor: default;
+      text-transform: uppercase;
+    }
+
+    /* Style for the arrow buttons (for the date stamp) */
+    .arrow-button {
+      cursor: pointer;
+      font-size: 24px;
+      color: var(--date-font-color);
+      background: var(--date-background);
+      border: var(--date-border);
+      padding: 5px;
+      margin: 5px;
+      user-select: none;
+      transition: transform 0.2s, background-color 0.2s, opacity 0.3s;
+      display: inline-block;
+      opacity: 0;
+    }
+    .date-stamp:hover .arrow-button {
+      opacity: 1;
+    }
+    .arrow-button:hover {
+      transform: scale(1.2);
+      background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    /* Style for the editable text box */
+    .editable-text {
+      position: absolute;
+      transform: translateX(-50%);
+      text-align: center;
+      font-size: var(--editable-font-size);
+      color: var(--editable-font-color);
+      font-family: var(--editable-font-type);
+      text-shadow: var(--editable-font-glow);
+      background: var(--editable-background);
+      border: var(--editable-border);
+      padding: 10px;
+      min-width: 150px;
+      cursor: pointer;
+    }
+
+    /* Tooltip style for hover display */
+    .tooltip {
+      position: absolute;
+      background-color: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 3px 6px;
+      font-size: 12px;
+      border-radius: 3px;
+      pointer-events: none;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+  </style>
+  <!-- Include html2canvas from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+  <div id="container"></div>
+
+  <script>
+    // Global variable for the currently displayed date.
+    let currentDate = new Date();
+
+    // Positions for date stamp and editable text box (relative to container)
+    const dateStampPosition = { top: "-8px", left: "267px" };
+    const editableTextPosition = { top: "650px", left: "813px" };
+
+    // List of Ohio cities with approximate latitude/longitude values.
+    const cities = [
+      { name: "Toledo", lat: 41.6639, lon: -83.5552 },
+      { name: "Cleveland", lat: 41.4993, lon: -81.6944 },
+      { name: "Lima", lat: 40.7420, lon: -84.1052 },
+      { name: "Mansfield", lat: 40.7584, lon: -82.5154 },
+      { name: "Canton", lat: 40.7989, lon: -81.3785 },
+      { name: "Dayton", lat: 39.7589, lon: -84.1916 },
+      { name: "Columbus", lat: 39.9612, lon: -82.9988 },
+      { name: "Caldwell", lat: 39.9330, lon: -81.6546 },
+      { name: "Cincinnati", lat: 39.1031, lon: -84.5120 },
+      { name: "Portsmouth", lat: 38.7151, lon: -82.9988 },
+      { name: "Marietta", lat: 39.4151, lon: -81.4436 }
+    ];
+
+    // The three forecast times you want.
+    const forecastTimes = [
+      { hour: 9, label: "9AM" },
+      { hour: 12, label: "12PM" },
+      { hour: 17, label: "5PM" }
+    ];
+
+    /*
+      Positions for each city/time combination.
+      These values are relative to the container.
+    */
+    const positions = {
+      "Toledo-9AM":      { top: "247px",  left: "176.5px" },
+      "Toledo-12PM":     { top: "247px", left: "697.438px" },
+      "Toledo-5PM":      { top: "247px", left: "1238px" },
+      "Cleveland-9AM":   { top: "262px",  left: "378px" },
+      "Cleveland-12PM":  { top: "262px", left: "893.438px" },
+      "Cleveland-5PM":   { top: "262px", left: "1434px" },
+      "Lima-9AM":        { top: "333.5px",  left: "122.797px" },
+      "Lima-12PM":       { top: "333.5px", left: "643.219px" },
+      "Lima-5PM":        { top: "333.5px", left: "1181.8px" },
+      "Mansfield-9AM":   { top: "329.5px",  left: "273.672px" },
+      "Mansfield-12PM":  { top: "329.5px", left: "795.094px" },
+      "Mansfield-5PM":   { top: "329.5px", left: "1334.66px" },
+      "Canton-9AM":      { top: "329.5px", left: "410.219px" },
+      "Canton-12PM":     { top: "329.5px", left: "932.656px" },
+      "Canton-5PM":      { top: "329.5px", left: "1472.22px" },
+      "Dayton-9AM":      { top: "433.5px", left: "107.266px" },
+      "Dayton-12PM":     { top: "433.5px", left: "622.219px" },
+      "Dayton-5PM":      { top: "433.5px", left: "1163.77px" },
+      "Columbus-9AM":    { top: "415.5px", left: "232.438px" },
+      "Columbus-12PM":   { top: "415.5px", left: "755.891px" },
+      "Columbus-5PM":    { top: "415.5px", left: "1294.44px" },
+      "Caldwell-9AM":    { top: "409.5px", left: "389.688px" },
+      "Caldwell-12PM":   { top: "409.5px", left: "911.109px" },
+      "Caldwell-5PM":    { top: "409.5px", left: "1451.69px" },
+      "Cincinnati-9AM":  { top: "495.5px", left: "90.5469px" },
+      "Cincinnati-12PM": { top: "495.5px", left: "607.5px" },
+      "Cincinnati-5PM":  { top: "495.5px", left: "1150.55px" },
+      "Portsmouth-9AM":  { top: "539.5px", left: "238.344px" },
+      "Portsmouth-12PM": { top: "539.5px", left: "755.734px" },
+      "Portsmouth-5PM":  { top: "539.5px", left: "1296.33px" },
+      "Marietta-9AM":    { top: "467px", left: "392px" },
+      "Marietta-12PM":   { top: "467px", left: "910px" },
+      "Marietta-5PM":    { top: "467px", left: "1451px" }
+    };
+
+    // Utility: get ordinal suffix.
+    function getOrdinalSuffix(n) {
+      const j = n % 10, k = n % 100;
+      if (j === 1 && k !== 11) return "st";
+      if (j === 2 && k !== 12) return "nd";
+      if (j === 3 && k !== 13) return "rd";
+      return "th";
+    }
+
+    // Utility: format a date.
+    function getFormattedDate(date) {
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const dayName = days[date.getDay()];
+      const monthName = months[date.getMonth()];
+      const dayNum = date.getDate();
+      const suffix = getOrdinalSuffix(dayNum);
+      const year = date.getFullYear();
+      return `${dayName}, ${monthName} ${dayNum}${suffix}, ${year}`;
+    }
+
+    // Update the date stamp text.
+    function updateDateStamp() {
+      document.getElementById("date-text").textContent = getFormattedDate(currentDate);
+    }
+
+    // Display date stamp (positions relative to container).
+    function displayDateStamp() {
+      const dateStamp = document.createElement("div");
+      dateStamp.className = "date-stamp";
+      dateStamp.style.top = dateStampPosition.top;
+      dateStamp.style.left = dateStampPosition.left;
+      
+      dateStamp.addEventListener('mouseenter', showTooltip);
+      dateStamp.addEventListener('mouseleave', hideTooltip);
+
+      const upArrow = document.createElement("div");
+      upArrow.className = "arrow-button";
+      upArrow.textContent = "▲";
+      upArrow.title = "Next Day";
+      upArrow.addEventListener('click', function(e) {
+        e.stopPropagation();
+        currentDate.setDate(currentDate.getDate() + 1);
+        updateDateStamp();
+      });
+
+      const dateText = document.createElement("span");
+      dateText.id = "date-text";
+      dateText.textContent = getFormattedDate(currentDate);
+
+      const downArrow = document.createElement("div");
+      downArrow.className = "arrow-button";
+      downArrow.textContent = "▼";
+      downArrow.title = "Previous Day";
+      downArrow.addEventListener('click', function(e) {
+        e.stopPropagation();
+        currentDate.setDate(currentDate.getDate() - 1);
+        updateDateStamp();
+      });
+
+      dateStamp.appendChild(upArrow);
+      dateStamp.appendChild(dateText);
+      dateStamp.appendChild(downArrow);
+
+      document.getElementById("container").appendChild(dateStamp);
+    }
+
+    // Display an editable text box.
+    function displayEditableText() {
+      const editableText = document.createElement("div");
+      editableText.className = "editable-text";
+      editableText.style.top = editableTextPosition.top;
+      editableText.style.left = editableTextPosition.left;
+      editableText.textContent = "DON'T FORGET TO UPDATE ME.......PRETTY PLEASE!!!";
+      
+      editableText.addEventListener('mouseenter', showTooltip);
+      editableText.addEventListener('mouseleave', hideTooltip);
+      
+      editableText.addEventListener("click", function(e) {
+        e.stopPropagation();
+        hideTooltip(e);
+        let newText = window.prompt("Enter new text", editableText.textContent);
+        if (newText !== null) {
+          editableText.textContent = newText;
+        }
+      });
+      
+      makeDraggable(editableText);
+      document.getElementById("container").appendChild(editableText);
+    }
+
+    // Fetch hourly forecast from API.
+    async function getHourlyForecast(lat, lon) {
+      try {
+        const pointRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+        const pointData = await pointRes.json();
+        const forecastHourlyUrl = pointData.properties.forecastHourly;
+        const forecastRes = await fetch(forecastHourlyUrl);
+        const forecastData = await forecastRes.json();
+        return forecastData.properties.periods;
+      } catch (error) {
+        console.error("Error fetching forecast:", error);
+        return [];
+      }
+    }
+
+    // Get temperature for target hour.
+    function getForecastForHour(periods, targetHour) {
+      for (const period of periods) {
+        const periodDate = new Date(period.startTime);
+        if (periodDate.getHours() === targetHour) {
+          return period.temperature;
+        }
+      }
+      return "N/A";
+    }
+
+    // Enable drag & drop within the container.
+    function makeDraggable(el) {
+      let offsetX, offsetY;
+      const container = document.getElementById("container");
+
+      el.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        // Recalculate container's rect on mousedown.
+        const containerRect = container.getBoundingClientRect();
+        // Offset relative to container.
+        offsetX = e.pageX - containerRect.left - el.offsetLeft;
+        offsetY = e.pageY - containerRect.top - el.offsetTop;
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+
+      function onMouseMove(e) {
+        const containerRect = container.getBoundingClientRect();
+        // New positions relative to container.
+        let newLeft = e.pageX - containerRect.left - offsetX;
+        let newTop = e.pageY - containerRect.top - offsetY;
+        el.style.left = newLeft + 'px';
+        el.style.top = newTop + 'px';
+
+        if (el._tooltip) {
+          el._tooltip.textContent = `Top: ${newTop}px, Left: ${newLeft}px (from container)`;
+          el._tooltip.style.left = (newLeft + el.offsetWidth / 2) + 'px';
+          el._tooltip.style.top = (newTop - 25) + 'px';
+        }
+      }
+
+      function onMouseUp(e) {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      }
+    }
+
+    // Show tooltip with element's position (relative to container).
+    function showTooltip(e) {
+      const el = e.currentTarget;
+      const container = document.getElementById("container");
+      const containerRect = container.getBoundingClientRect();
+      const rect = el.getBoundingClientRect();
+      const relativeLeft = rect.left - containerRect.left;
+      const relativeTop = rect.top - containerRect.top;
+      const tooltip = document.createElement('div');
+      tooltip.className = 'tooltip';
+      tooltip.textContent = `Top: ${el.style.top}, Left: ${el.style.left} (from container)`;
+      tooltip.style.left = (relativeLeft + rect.width / 2) + 'px';
+      tooltip.style.top = (relativeTop - 25) + 'px';
+      container.appendChild(tooltip);
+      el._tooltip = tooltip;
+    }
+
+    // Hide tooltip.
+    function hideTooltip(e) {
+      const el = e.currentTarget;
+      if (el._tooltip) {
+        el._tooltip.remove();
+        el._tooltip = null;
+      }
+    }
+
+    // Create temperature boxes.
+    async function displayTemperatures() {
+      for (const city of cities) {
+        const periods = await getHourlyForecast(city.lat, city.lon);
+        for (const timeObj of forecastTimes) {
+          const temp = getForecastForHour(periods, timeObj.hour);
+          const boxId = `${city.name}-${timeObj.label}`;
+          const pos = positions[boxId] || { top: "0px", left: "0px" };
+
+          const box = document.createElement("div");
+          box.className = "temp-box";
+          box.id = boxId;
+          box.style.top = pos.top;
+          box.style.left = pos.left;
+          box.textContent = `${temp}`;
+
+          box.addEventListener('mouseenter', showTooltip);
+          box.addEventListener('mouseleave', hideTooltip);
+          makeDraggable(box);
+
+          document.getElementById("container").appendChild(box);
+        }
+      }
+    }
+
+    // Run the display functions.
+    displayTemperatures();
+    displayDateStamp();
+    displayEditableText();
+
+    // Right-click handler: on right click, capture container to an image file.
+    document.getElementById("container").addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+      html2canvas(document.getElementById("container")).then(canvas => {
+        // Convert canvas to data URL.
+        const dataURL = canvas.toDataURL("image/png");
+        // Create a temporary download link and click it.
+        const link = document.createElement("a");
+        link.href = dataURL;
+        link.download = "combined_overlay.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    });
+  </script>
+</body>
+</html>
