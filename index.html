@@ -7,12 +7,11 @@
     /* CSS custom properties for easy customization */
     :root {
       /* Temperature box properties */
-      --font-size: 35px;
+      --font-size: 42px;
       --font-color: #ffff00;
       --font-type: "Overpass Black", sans-serif;
       --font-glow: 0 0 5px #000, 0 0 5px #000, 0 0 5px #000;
       --background: rgba(0, 0, 0, 0);
-      --border: 0px solid #fff;
       /* Set your background image URL below */
       --bg-image: url('background.png');
       
@@ -20,7 +19,7 @@
       --date-font-size: 36px;
       --date-font-color: #ffffff;
       --date-font-type: "Overpass Black", sans-serif;
-      --date-font-glow: 0 0 5px #000, 0 0 5px #000, 0 0 5px #000;
+      --date-font-glow: 0 0 5px #000, 0 0 5px #000, 0 0 10px #000;
       --date-background: rgba(0, 0, 0, 0);
       --date-border: 0px solid #fff;
 
@@ -40,13 +39,13 @@
       overflow: hidden;
     }
     
-    /* Fixed container centered in the viewport */
+    /* Fixed container centered in the viewport, now 1920x1080 */
     #container {
       position: fixed;
       top: 50%;
       left: 50%;
-      width: 1620px;
-      height: 780px;
+      width: 1920px;
+      height: 1080px;
       transform: translate(-50%, -50%);
       background-image: var(--bg-image);
       background-size: 100% 100%;
@@ -116,7 +115,7 @@
       position: absolute;
       transform: translateX(-50%);
       text-align: center;
-      font-size: var(--editable-font-size);
+      font-size: 36px;
       color: var(--editable-font-color);
       font-family: var(--editable-font-type);
       text-shadow: var(--editable-font-glow);
@@ -150,9 +149,12 @@
     // Global variable for the currently displayed date.
     let currentDate = new Date();
 
-    // Positions for date stamp and editable text box (relative to container)
-    const dateStampPosition = { top: "-8px", left: "267px" };
-    const editableTextPosition = { top: "650px", left: "813px" };
+    /* 
+      Positions for date stamp and editable text box (originally based on 1620×780)
+      are scaled to fit a 1920×1080 container.
+    */
+    const dateStampPosition = { top: "15px", left: "320px" };
+    const editableTextPosition = { top: "905px", left: "975px" };
 
     // List of Ohio cities with approximate latitude/longitude values.
     const cities = [
@@ -178,42 +180,42 @@
 
     /*
       Positions for each city/time combination.
-      These values are relative to the container.
+      The original coordinates (designed for 1620×780) have been scaled to 1920×1080.
     */
     const positions = {
-      "Toledo-9AM":      { top: "247px",  left: "176.5px" },
-      "Toledo-12PM":     { top: "247px", left: "697.438px" },
-      "Toledo-5PM":      { top: "247px", left: "1238px" },
-      "Cleveland-9AM":   { top: "262px",  left: "378px" },
-      "Cleveland-12PM":  { top: "262px", left: "893.438px" },
-      "Cleveland-5PM":   { top: "262px", left: "1434px" },
-      "Lima-9AM":        { top: "333.5px",  left: "122.797px" },
-      "Lima-12PM":       { top: "333.5px", left: "643.219px" },
-      "Lima-5PM":        { top: "333.5px", left: "1181.8px" },
-      "Mansfield-9AM":   { top: "329.5px",  left: "273.672px" },
-      "Mansfield-12PM":  { top: "329.5px", left: "795.094px" },
-      "Mansfield-5PM":   { top: "329.5px", left: "1334.66px" },
-      "Canton-9AM":      { top: "329.5px", left: "410.219px" },
-      "Canton-12PM":     { top: "329.5px", left: "932.656px" },
-      "Canton-5PM":      { top: "329.5px", left: "1472.22px" },
-      "Dayton-9AM":      { top: "433.5px", left: "107.266px" },
-      "Dayton-12PM":     { top: "433.5px", left: "622.219px" },
-      "Dayton-5PM":      { top: "433.5px", left: "1163.77px" },
-      "Columbus-9AM":    { top: "415.5px", left: "232.438px" },
-      "Columbus-12PM":   { top: "415.5px", left: "755.891px" },
-      "Columbus-5PM":    { top: "415.5px", left: "1294.44px" },
-      "Caldwell-9AM":    { top: "409.5px", left: "389.688px" },
-      "Caldwell-12PM":   { top: "409.5px", left: "911.109px" },
-      "Caldwell-5PM":    { top: "409.5px", left: "1451.69px" },
-      "Cincinnati-9AM":  { top: "495.5px", left: "90.5469px" },
-      "Cincinnati-12PM": { top: "495.5px", left: "607.5px" },
-      "Cincinnati-5PM":  { top: "495.5px", left: "1150.55px" },
-      "Portsmouth-9AM":  { top: "539.5px", left: "238.344px" },
-      "Portsmouth-12PM": { top: "539.5px", left: "755.734px" },
-      "Portsmouth-5PM":  { top: "539.5px", left: "1296.33px" },
-      "Marietta-9AM":    { top: "467px", left: "392px" },
-      "Marietta-12PM":   { top: "467px", left: "910px" },
-      "Marietta-5PM":    { top: "467px", left: "1451px" }
+      "Toledo-9AM":      { top: "345px",  left: "209px" },
+      "Toledo-12PM":     { top: "345px",  left: "827px" },
+      "Toledo-5PM":      { top: "345px",  left: "1467px" },
+      "Cleveland-9AM":   { top: "370px",  left: "448px" },
+      "Cleveland-12PM":  { top: "370px",  left: "1059px" },
+      "Cleveland-5PM":   { top: "370px",  left: "1699px" },
+      "Lima-9AM":        { top: "466px",  left: "145px" },
+      "Lima-12PM":       { top: "466px",  left: "762px" },
+      "Lima-5PM":        { top: "466px",  left: "1400px" },
+      "Mansfield-9AM":   { top: "461px",  left: "325px" },
+      "Mansfield-12PM":  { top: "461px",  left: "943px" },
+      "Mansfield-5PM":   { top: "461px",  left: "1582px" },
+      "Canton-9AM":      { top: "461px",  left: "486px" },
+      "Canton-12PM":     { top: "461px",  left: "1104px" },
+      "Canton-5PM":      { top: "461px",  left: "1745px" },
+      "Dayton-9AM":      { top: "605px",  left: "127px" },
+      "Dayton-12PM":     { top: "605px",  left: "737px" },
+      "Dayton-5PM":      { top: "605px",  left: "1379px" },
+      "Columbus-9AM":    { top: "580px",  left: "276px" },
+      "Columbus-12PM":   { top: "580px",  left: "896px" },
+      "Columbus-5PM":    { top: "580px",  left: "1536px" },
+      "Caldwell-9AM":    { top: "577px",  left: "461px" },
+      "Caldwell-12PM":   { top: "577px",  left: "1079px" },
+      "Caldwell-5PM":    { top: "577px",  left: "1719px" },
+      "Cincinnati-9AM":  { top: "690px",  left: "107px" },
+      "Cincinnati-12PM": { top: "690px",  left: "719px" },
+      "Cincinnati-5PM":  { top: "690px",  left: "1364px" },
+      "Portsmouth-9AM":  { top: "752px",  left: "282px" },
+      "Portsmouth-12PM": { top: "752px",  left: "896px" },
+      "Portsmouth-5PM":  { top: "752px",  left: "1537px" },
+      "Marietta-9AM":    { top: "651px",  left: "464px" },
+      "Marietta-12PM":   { top: "651px",  left: "1079px" },
+      "Marietta-5PM":    { top: "651px",  left: "1719px" }
     };
 
     // Utility: get ordinal suffix.
@@ -340,9 +342,7 @@
 
       el.addEventListener('mousedown', function(e) {
         e.preventDefault();
-        // Recalculate container's rect on mousedown.
         const containerRect = container.getBoundingClientRect();
-        // Offset relative to container.
         offsetX = e.pageX - containerRect.left - el.offsetLeft;
         offsetY = e.pageY - containerRect.top - el.offsetTop;
         document.addEventListener('mousemove', onMouseMove);
@@ -351,7 +351,6 @@
 
       function onMouseMove(e) {
         const containerRect = container.getBoundingClientRect();
-        // New positions relative to container.
         let newLeft = e.pageX - containerRect.left - offsetX;
         let newTop = e.pageY - containerRect.top - offsetY;
         el.style.left = newLeft + 'px';
@@ -426,13 +425,11 @@
     displayDateStamp();
     displayEditableText();
 
-    // Right-click handler: on right click, capture container to an image file.
+    // Right-click handler: capture the container as an image.
     document.getElementById("container").addEventListener("contextmenu", function(e) {
       e.preventDefault();
       html2canvas(document.getElementById("container")).then(canvas => {
-        // Convert canvas to data URL.
         const dataURL = canvas.toDataURL("image/png");
-        // Create a temporary download link and click it.
         const link = document.createElement("a");
         link.href = dataURL;
         link.download = "combined_overlay.png";
