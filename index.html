@@ -32,25 +32,24 @@
       --editable-border: 0px solid #fff;
     }
 
-    /* Make the container fixed in the viewport so it never shifts */
+    /* Allow scrolling on the body */
     body {
       margin: 0;
       background: #000;
-      overflow: hidden;
+      overflow: auto;
     }
     
-    /* Fixed container centered in the viewport, now 1920x1080 */
+    /* Container is now a relative block element that will be centered.
+       Scrollbars will appear if the viewport is smaller than 1920x1080. */
     #container {
-      position: fixed;
-      top: 50%;
-      left: 50%;
+      margin: 20px auto; /* top margin for breathing room */
       width: 1920px;
       height: 1080px;
-      transform: translate(-50%, -50%);
       background-image: var(--bg-image);
       background-size: 100% 100%;
       background-position: center;
       background-repeat: no-repeat;
+      position: relative;
     }
 
     /* Style for each temperature box */
